@@ -90,4 +90,3 @@ ggplot(daily_sales, aes(x= Date, y = total_sales)) +
 
 By analysis of the daily sales we can establish that Daily Sales will average $15K typically ranging between $14K-$16K
 
-
