@@ -1,0 +1,91 @@
+---
+title: "Restaurant_Sales_Analysis_Report"
+author: "Onyedikachukwu Okonkwo"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+
+#Load and Clean Data
+
+data <- read.csv("9. Sales-Data-Analysis.csv")
+data_clean <- data %>%
+  mutate(
+    Date = dmy(Date), #convert Date to format
+    Manager = str_squish(Manager), #remove extra spaces
+    City = str_squish(City), 
+    Product = str_squish(Product)
+  )
+rm(data)
+
+#Create daily Sales Summary
+daily_sales <- data_clean %>%
+  group_by(Date) %>%
+  summarize(
+    total_sales = sum(Price * Quantity),
+    num_orders = n()
+  ) %>%
+  mutate(
+    day_of_week = wday(Date, label = TRUE)
+  ) %>%
+  arrange(Date)
+
+#Create Sales averages by day of week
+sales_average <- daily_sales %>%
+  group_by(day_of_week) %>%
+  summarize(mean_sales = mean(total_sales),
+            mean_orders = mean(num_orders),
+            average_cost_of_orders = mean_sales / mean_orders
+            )
+
+average_order <- sales_average %>%
+  pull(mean_orders)
+
+average_order_cost <- sales_average %>%
+  pull(average_cost_of_orders)
+
+#Create December Subset
+december_sales <- daily_sales %>%
+        filter(Date >= "2022-12-01")
+
+
+```
+
+**BOTTOM LINE UP FRONT**
+
+This is predictive analysis based off the Resturant Sales Data from 9 November - 29 December. 
+
+By analysis of the daily sales we can establish that Daily Sales will average $15K typically ranging between $14K-$16K
+
+**ANALYSIS**
+
+```{r analysis, echo=FALSE}
+cat("Maximum single-day sales: $", max(daily_sales$total_sales), "\n\n")
+cat("December Performance:\n")
+cat("Average daily sales: $", mean(december_sales$total_sales), "\n")
+print(summary(december_sales$total_sales))
+```
+
+**VISUALIZATION**
+
+```{r pressure, echo=FALSE}
+ggplot(daily_sales, aes(x= Date, y = total_sales)) +
+  geom_line() +
+  labs(
+    title = "Sales Trend",
+    x = "Date",
+    y = "Total Sales",
+  ) +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::label_number(scale = 1/1000, suffix = "K")) +
+  scale_x_date(date_breaks = "5 days", date_labels = "%d/%m")
+```
+**CONCLUSION**
+
+By analysis of the daily sales we can establish that Daily Sales will average $15K typically ranging between $14K-$16K
+
